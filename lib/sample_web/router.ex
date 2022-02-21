@@ -2,12 +2,13 @@ defmodule SampleWeb.Router do
   use SampleWeb, :router
 
   pipeline :browser do
-    plug :accepts, ["html"]
+    plug :accepts, ["html", "text"]
     plug :fetch_session
     plug :fetch_live_flash
     plug :put_root_layout, {SampleWeb.LayoutView, :root}
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug SampleWeb.Plugs.Locale, "en"
   end
 
   pipeline :api do
@@ -18,6 +19,26 @@ defmodule SampleWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :index
+    get "/redirect_from", PageController, :redirect_from
+    get "/redirect_to", PageController, :redirect_to
+    get "/external_redirect", PageController, :external_redirect
+
+    get "/hello", HelloController, :index
+    get "/hello/:message", HelloController, :show
+
+    resources "/users", UserController do
+      resources "/posts", PostController
+    end
+
+    resources "/reviews", ReviewsController
+  end
+
+  scope "/admin", SampleWeb.Admin, as: :admin do
+    pipe_through :browser
+
+    resources "/reviews", ReviewController
+    resources "/images", ImageController
+    resources "/users", UserController
   end
 
   # Other scopes may use custom stacks.
